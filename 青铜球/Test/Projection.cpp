@@ -1,0 +1,69 @@
+#include "StdAfx.h"
+#include "Projection.h"
+#include "math.h"
+#define PI 3.1415926
+
+
+CProjection::CProjection(void)
+{
+	R = 1000, d = 800, Phi = 60.0, Psi = 0.0;//视点位于正前方
+	Near = 200, Far = 1200;//近剪切面与远剪切面
+	InitialParameter();
+}
+
+CProjection::~CProjection(void)
+{
+}
+
+void CProjection::InitialParameter(void)//透视变换参数初始化
+{
+	k[0] = sin(PI * Phi / 180);//Phi代表φ
+	k[1] = cos(PI * Phi / 180);
+	k[2] = sin(PI * Psi / 180);//Psi代表ψ
+	k[3] = cos(PI * Psi / 180);
+	k[4] = k[0] * k[2];
+	k[5] = k[0] * k[3];
+	k[6] = k[1] * k[2];
+	k[7] = k[1] * k[3];
+	Eye.x = R * k[4];//设置视点	
+	Eye.y = R * k[1];
+	Eye.z = R * k[5];
+}
+
+void CProjection::SetEye(double R, double Phi, double Psi)
+{
+	this->R = R;
+	this->Phi = Phi;
+	this->Psi = Psi;
+	InitialParameter();
+}
+
+CP3 CProjection::GetEye(void)
+{
+	return Eye;
+}
+   
+CP3 CProjection::PerspectiveProjection(CP3 WorldPoint)
+{
+	CP3 ViewPoint;//观察坐标系三维点
+	ViewPoint.x = k[3] * WorldPoint.x - k[2] * WorldPoint.z; 
+	ViewPoint.y =-k[6] * WorldPoint.x +k[0] * WorldPoint.y - k[7]* WorldPoint.z;
+    ViewPoint.z = -k[4] * WorldPoint.x - k[1] * WorldPoint.y - k[5] * WorldPoint.z + R;
+	ViewPoint.c = WorldPoint.c;
+    CP3 ScreenPoint;//屏幕坐标系三维点
+	ScreenPoint.x = d * ViewPoint.x / ViewPoint.z; 
+	ScreenPoint.y = d * ViewPoint.y / ViewPoint.z;
+	ScreenPoint.z = Far * (1 - Near / ViewPoint.z) / (Far - Near);;
+	ScreenPoint.c = ViewPoint.c;
+	return ScreenPoint;
+}
+
+CP3 CProjection::OrthogonalProjection(CP3 WorldPoint)//正交投影
+{
+	CP3 ScreenPoint;//屏幕坐标系三维点
+	ScreenPoint.x = WorldPoint.x;
+	ScreenPoint.y = WorldPoint.y;
+	ScreenPoint.z =-WorldPoint.z;
+	ScreenPoint.c = WorldPoint.c;
+	return ScreenPoint;
+}
