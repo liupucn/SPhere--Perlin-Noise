@@ -4,4 +4,4 @@
 运行效果：
 
 
-![Image text](https://github.com/liupucn/Radiosity/raw/master/image/噪声.png)
+![Image text](https://github.com/liupucn/SPhere--Perlin-Noise/raw/master/image/噪声.png)
